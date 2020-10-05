@@ -19,7 +19,3 @@ target_link_libraries(
     ffmpeg-handler
     PRIVATE FFmpeg::FFmpeg
     PRIVATE Asampl)
-
-target_include_directories(
-    ffmpeg-handler
-    PRIVATE include)
