@@ -3,7 +3,6 @@ include(ExternalProject)
 
 project(ffmpeg-handler)
 
-include(cmake/asampl.cmake)
 include(cmake/ffmpeg.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,5 +16,10 @@ add_library(
 
 target_link_libraries(
     ffmpeg-handler
-    PRIVATE FFmpeg::FFmpeg
-    PRIVATE Asampl)
+    PRIVATE FFmpeg::FFmpeg)
+
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    target_include_directories(ffmpeg-handler PRIVATE deps/Asampl/include)
+else()
+    target_link_libraries(ffmpeg-handler PRIVATE asampl-interface)
+endif()

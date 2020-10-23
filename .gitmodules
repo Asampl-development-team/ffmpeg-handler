@@ -1,0 +1,4 @@
+[submodule "deps/Asampl"]
+	path = deps/Asampl
+    branch = cmake
+	url = https://github.com/asampl-development-team/Asampl
