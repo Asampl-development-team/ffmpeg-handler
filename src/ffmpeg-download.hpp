@@ -176,7 +176,9 @@ struct Download : public Common {
     }
 
     AsaData* convert_data() {
-        AsaData* data = make_data_normal(0.f, m_frame->width, m_frame->height);
+        const float time = m_frame->pts * get_time_base();
+        AsaData* data = make_data_normal(time, m_frame->width, m_frame->height);
+
         AsaVideoData* video_data = reinterpret_cast<AsaVideoData*>(data->data);
 
         auto sws_context = sws_getContext(
@@ -191,6 +193,11 @@ struct Download : public Common {
         sws_freeContext(sws_context);
 
         return data;
+    }
+
+    float get_time_base() {
+        const auto time_base = m_format_context->streams[m_video_stream_id]->time_base;
+        return static_cast<float>(time_base.num) / static_cast<float>(time_base.den);
     }
 
     int read_packet(uint8_t* buffer, size_t buf_size) {
