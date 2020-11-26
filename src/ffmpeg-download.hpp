@@ -185,12 +185,18 @@ struct Download : public Common {
             m_frame->width, m_frame->height, static_cast<AVPixelFormat>(m_frame->format),
             m_frame->width, m_frame->height, AV_PIX_FMT_BGR24,
             SWS_BILINEAR, nullptr, nullptr, nullptr);
+
         int rgb_stride[3] = {3 * m_frame->width, 0, 0};
-        uint8_t* rgb_data[3] = {video_data->frame, nullptr, nullptr};
+        auto buffer = new uint8_t[rgb_stride[0] * m_frame->height];
+        uint8_t* rgb_data[3] = {buffer, nullptr, nullptr};
+
         sws_scale(
             sws_context, m_frame->data, m_frame->linesize, 0, m_frame->height, 
             rgb_data, rgb_stride);
         sws_freeContext(sws_context);
+
+        std::copy(buffer, buffer + rgb_stride[0] * m_frame->height, video_data->frame);
+        delete [] buffer;
 
         return data;
     }
