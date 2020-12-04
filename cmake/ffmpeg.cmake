@@ -2,7 +2,7 @@ ExternalProject_Add(
     ffmpeg
     GIT_REPOSITORY git://source.ffmpeg.org/ffmpeg.git
     GIT_TAG n4.3
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared --disable-stripping
+    CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared --disable-stripping --disable-asm
     BUILD_COMMAND make -j4
     INSTALL_COMMAND make install
     UPDATE_COMMAND ""

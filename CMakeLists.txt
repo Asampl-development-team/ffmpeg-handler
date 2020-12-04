@@ -7,7 +7,14 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subdirectory(deps/Asampl)
 endif()
 
-include(cmake/ffmpeg.cmake)
+if(${BUILD_OWN_FFMPEG})
+    include(cmake/ffmpeg.cmake)
+    set(FFMPEG_LIBRARIES FFmpeg::FFmpeg)
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libavutil libswscale)
+endif()
+
 
 set(CMAKE_CXX_STANDARD 17)
 file(GLOB HANDLER_SRCS src/*.cpp)
@@ -21,10 +28,13 @@ add_library(
 
 target_link_libraries(
     ffmpeg-handler
-    PRIVATE FFmpeg::FFmpeg
+    PRIVATE ${FFMPEG_LIBRARIES}
     PRIVATE asampl-interface)
 
 # example
 add_executable(example EXCLUDE_FROM_ALL Example.cpp)
 
 target_link_libraries(example asampl-lib)
+
+# install
+install(TARGETS ffmpeg-handler LIBRARY DESTINATION handlers)
