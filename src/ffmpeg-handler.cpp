@@ -5,6 +5,10 @@
 
 #include "ffmpeg-download.hpp"
 
+#if HANDLER_INTERFACE_VERSION_MAJOR != 1
+#error "Handler requires interface version 1"
+#endif
+
 extern "C" {
 
 struct Download* asa_handler_open_download() {
