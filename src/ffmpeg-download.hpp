@@ -72,32 +72,41 @@ struct Download : public Common {
         av_free(m_io_context);
     }
 
-    AsaData* download() {
+    AsaHandlerResponse download() {
+        AsaHandlerResponse response;
+
         if (!ensure_open_input()) {
-            return make_data_fatal("Could not open input");
+            asa_new_response_fatal("Could not open input", &response);
+            return response;
         }
 
         {
             const auto detect = ensure_detect_stream();
             if (std::holds_alternative<Again>(detect)) {
-                return make_data_again();
+                asa_new_response_not_ready(&response);
+                return response;
             } else if (std::holds_alternative<std::string>(detect)) {
-                return make_data_fatal(std::get<std::string>(detect).c_str());
-            };
+                asa_new_response_fatal(std::get<std::string>(detect).c_str(), &response);
+                return response;
+            }
         }
 
         {
             const auto decode = decode_next();
             if (std::holds_alternative<Again>(decode)) {
-                return make_data_again();
+                asa_new_response_not_ready(&response);
+                return response;
             } else if (std::holds_alternative<Eoi>(decode)) {
-                return make_data_eoi();
+                asa_new_response_eoi(&response);
+                return response;
             } else if (std::holds_alternative<std::string>(decode)) {
-                return make_data_fatal(std::get<std::string>(decode).c_str());
+                asa_new_response_fatal(std::get<std::string>(decode).c_str(), &response);
+                return response;
             }
         }
 
-        return convert_data();
+        convert_data(response);
+        return response;
     }
 
     bool ensure_open_input() {
@@ -175,11 +184,10 @@ struct Download : public Common {
         return Success{};
     }
 
-    AsaData* convert_data() {
-        const float time = m_frame->pts * get_time_base();
-        AsaData* data = make_data_normal(time, m_frame->width, m_frame->height);
+    void convert_data(AsaHandlerResponse& response) {
+        const double time = m_frame->pts * get_time_base();
 
-        AsaVideoData* video_data = reinterpret_cast<AsaVideoData*>(data->data);
+        auto* buffer = static_cast<uint8_t*>(asa_alloc(asa_video_frame_size(m_frame->width, m_frame->height)));
 
         auto sws_context = sws_getContext(
             m_frame->width, m_frame->height, static_cast<AVPixelFormat>(m_frame->format),
@@ -187,7 +195,6 @@ struct Download : public Common {
             SWS_BILINEAR, nullptr, nullptr, nullptr);
 
         int rgb_stride[3] = {3 * m_frame->width, 0, 0};
-        auto buffer = new uint8_t[rgb_stride[0] * m_frame->height];
         uint8_t* rgb_data[3] = {buffer, nullptr, nullptr};
 
         sws_scale(
@@ -195,15 +202,15 @@ struct Download : public Common {
             rgb_data, rgb_stride);
         sws_freeContext(sws_context);
 
-        std::copy(buffer, buffer + rgb_stride[0] * m_frame->height, video_data->frame);
-        delete [] buffer;
-
-        return data;
+        AsaValueContainer* container = asa_alloc_container();
+        asa_new_video_frame_take(buffer, m_frame->width, m_frame->height, container);
+        container->timestamp = time;
+        asa_new_response_normal(container, &response);
     }
 
-    float get_time_base() {
+    double get_time_base() {
         const auto time_base = m_format_context->streams[m_video_stream_id]->time_base;
-        return static_cast<float>(time_base.num) / static_cast<float>(time_base.den);
+        return static_cast<double>(time_base.num) / static_cast<double>(time_base.den);
     }
 
     int read_packet(uint8_t* buffer, size_t buf_size) {

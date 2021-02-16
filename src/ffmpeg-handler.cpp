@@ -1,12 +1,10 @@
 #include <utility>
 #include <iostream>
 
-#include <handler_interface.h>
-
 #include "ffmpeg-download.hpp"
 
-#if HANDLER_INTERFACE_VERSION_MAJOR != 1
-#error "Handler requires interface version 1"
+#if ASAMPL_FFI_VERSION_MAJOR != 0
+#error "Handler requires interface version 0"
 #endif
 
 extern "C" {
@@ -28,25 +26,19 @@ void asa_handler_close(Download* self) {
     delete self;
 }
 
-int asa_handler_push(Download* self, const AsaData* data) {
+int asa_handler_push(Download* self, const AsaBytes* data) {
     self->push(data);
     return 0;
 }
 
-AsaValueType asa_handler_get_type(Download*) {
-    return ASA_VIDEO;
-}
-
-AsaData* asa_handler_download(Download* self) {
+AsaHandlerResponse asa_handler_download(Download* self) {
     return self->download();
 }
 
-AsaData* asa_handler_upload(void* self) {
-    return Common::make_data_fatal("Uploading is not supported");
-}
-
-void asa_handler_free(void*, AsaData* data) {
-    Common::free(data);
+AsaHandlerResponse asa_handler_upload(void*) {
+    AsaHandlerResponse response;
+    asa_new_response_fatal("Uploading is not supported", &response);
+    return response;
 }
 
 }

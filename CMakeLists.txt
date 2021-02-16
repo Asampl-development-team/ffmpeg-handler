@@ -4,7 +4,7 @@ include(ExternalProject)
 project(ffmpeg-handler)
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    add_subdirectory(deps/Asampl)
+    add_subdirectory(deps/asampl-ffi)
 endif()
 
 if(${BUILD_OWN_FFMPEG})
@@ -29,12 +29,7 @@ add_library(
 target_link_libraries(
     ffmpeg-handler
     PRIVATE ${FFMPEG_LIBRARIES}
-    PRIVATE asampl-interface)
-
-# example
-add_executable(example EXCLUDE_FROM_ALL Example.cpp)
-
-target_link_libraries(example asampl-lib)
+    PRIVATE asampl-ffi)
 
 # install
 install(TARGETS ffmpeg-handler LIBRARY DESTINATION handlers)
