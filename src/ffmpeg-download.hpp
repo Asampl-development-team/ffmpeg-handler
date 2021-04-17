@@ -191,7 +191,7 @@ struct Download : public Common {
 
         auto sws_context = sws_getContext(
             m_frame->width, m_frame->height, static_cast<AVPixelFormat>(m_frame->format),
-            m_frame->width, m_frame->height, AV_PIX_FMT_BGR24,
+            m_frame->width, m_frame->height, AV_PIX_FMT_RGB24,
             SWS_BILINEAR, nullptr, nullptr, nullptr);
 
         int rgb_stride[3] = {3 * m_frame->width, 0, 0};
