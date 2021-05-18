@@ -187,7 +187,7 @@ struct Download : public Common {
     void convert_data(AsaHandlerResponse& response) {
         const double time = m_frame->pts * get_time_base();
 
-        auto* buffer = static_cast<uint8_t*>(asa_alloc(asa_video_frame_size(m_frame->width, m_frame->height)));
+        auto* buffer = static_cast<uint8_t*>(asa_alloc(asa_image_size(m_frame->width, m_frame->height)));
 
         auto sws_context = sws_getContext(
             m_frame->width, m_frame->height, static_cast<AVPixelFormat>(m_frame->format),
@@ -203,7 +203,7 @@ struct Download : public Common {
         sws_freeContext(sws_context);
 
         AsaValueContainer* container = asa_alloc_container();
-        asa_new_video_frame_take(buffer, m_frame->width, m_frame->height, container);
+        asa_new_image_take(buffer, m_frame->width, m_frame->height, container);
         container->timestamp = time;
         asa_new_response_normal(container, &response);
     }
