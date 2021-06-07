@@ -187,7 +187,7 @@ struct Download : public Common {
     void convert_data(AsaHandlerResponse& response) {
         const double time = m_frame->pts * get_time_base();
 
-        auto* buffer = static_cast<uint8_t*>(asa_alloc(asa_image_size(m_frame->width, m_frame->height)));
+        auto* buffer = static_cast<uint8_t*>(asa_alloc(asa_image_size(m_frame->width, m_frame->height) + 100));
 
         auto sws_context = sws_getContext(
             m_frame->width, m_frame->height, static_cast<AVPixelFormat>(m_frame->format),
